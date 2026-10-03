@@ -1,0 +1,25 @@
+# dependencies and build output
+node_modules/
+dist/
+
+# local data: PGlite, uploads, model and OCR caches, scratch space (never commit)
+.data/
+.data-*
+
+# Vercel CLI link and pulled environment (never commit)
+.vercel/
+
+# environment (the example file is committed)
+.env*
+!.env.example
+
+# test and tooling output
+coverage/
+.vitest/
+test-results/
+playwright-report/
+*.log
+
+
+.DS_Store
+.ruff_cache/

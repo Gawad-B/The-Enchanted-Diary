@@ -1,0 +1,511 @@
+/*
+ * The ink: how the reader's words land, sink and dry, and how the diary's reply develops on the page (experience research
+ * section 5). Everything animated here is opacity, colour, blur or a transform of an element that is not a text run: the spans
+ * of ink are plain inline elements (no transform, no inline-block), so Arabic keeps its joining and its shaping.
+ *
+ * States of the reader's ink: wet (glossy blue-black, a sheen for 700 ms), settled, sinking (blur, a shift toward the paper's
+ * tone), dried (a faint trace: the diary remembers). The diary's ink: rising (warm light under the surface), developing, dry.
+ */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ink-wet-gloss: #0f1320;
+  --ink-absorbed: #5b4f3c;
+  --ink-dry-reply: #4a3220;
+  --ink-lead-dry: #2a1410;
+  --ink-faded: 0.5;
+  --paper-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='n' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='fractalNoise' baseFrequency='.55 .9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .36  0 0 0 0 .26  0 0 0 0 .14  0 0 0 .95 -.12'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* ---------- the reader's quill ---------- */
+.quill {
+  position: relative;
+  color: var(--ink-wet);
+}
+
+.quill__field {
+  position: relative;
+  border-bottom: 1px solid rgb(59 44 38 / 0.38);
+  transition: border-color 200ms var(--ease-out);
+}
+
+.quill__field:focus-within {
+  border-bottom-color: var(--gold-dim);
+}
+
+.quill__textarea,
+.quill__mirror-inner {
+  margin: 0;
+  padding: 0.3rem 0.35rem;
+  font-family: var(--font-quill);
+  font-size: 1.4rem;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-align: start;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+/* The control: the real textarea. Its own glyphs and caret are transparent; the mirror shows the ink. */
+.quill__textarea {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-height: 9.5rem;
+  resize: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.quill__textarea::-webkit-scrollbar {
+  display: none;
+}
+
+.quill__textarea::placeholder {
+  color: rgb(59 44 38 / 0.58);
+  font-family: var(--font-fair);
+  font-size: 1.05rem;
+  font-style: italic;
+}
+
+:lang(ar) .quill__textarea::placeholder {
+  font-style: normal;
+}
+
+.quill__textarea::selection {
+  background: rgb(224 168 79 / 0.42);
+  color: transparent;
+}
+
+.quill__textarea:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/* The focus ring fits the page: the writing line itself turns gold, with the dark offset under it (2 px gold, 2 px dark): a pen
+   line, not a box. The dark edge is what keeps it visible on parchment. */
+.quill__field:has(.quill__textarea:focus-visible) {
+  border-bottom-color: var(--focus-ring-color);
+  box-shadow:
+    0 var(--focus-ring-width) 0 0 var(--focus-ring-color),
+    0 calc(var(--focus-ring-width) + var(--focus-ring-offset)) 0 0 var(--ink-black);
+}
+
+.quill__mirror {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.quill__mirror-inner {
+  will-change: auto;
+}
+
+/* Each glyph (each Arabic word) lands: opacity in 60 ms, then the wet sheen settles over 700 ms. */
+.quill__u {
+  animation: quill-land 700ms linear backwards;
+}
+
+.quill__u--word {
+  animation-name: quill-land-word;
+}
+
+@keyframes quill-land {
+  0% {
+    opacity: 0;
+    color: var(--ink-wet-gloss);
+    text-shadow: 0 0 1px rgb(255 255 255 / 0.22);
+    filter: blur(0.5px);
+  }
+  9% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    color: var(--ink-wet);
+    text-shadow: 0 0 0 rgb(255 255 255 / 0);
+  }
+}
+
+@keyframes quill-land-word {
+  0% {
+    opacity: 0;
+    color: var(--ink-wet-gloss);
+    text-shadow: 0 0 1px rgb(255 255 255 / 0.22);
+    filter: blur(0.5px);
+  }
+  14% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    color: var(--ink-wet);
+    text-shadow: 0 0 0 rgb(255 255 255 / 0);
+  }
+}
+
+/* The nib that follows the caret: a quill tip with a small ink dot; it pulses slowly while the field has focus. */
+.quill__nib {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 1.5em;
+  margin-top: 0.3rem;
+  margin-inline-start: -1px;
+  color: var(--ink-wet);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
+.quill__nib[data-placed='true'] {
+  opacity: 0.3;
+}
+
+.quill__field:focus-within .quill__nib[data-placed='true'] {
+  opacity: 0.9;
+  animation: nib-pulse 900ms ease-in-out infinite alternate;
+}
+
+.quill__nib svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: currentcolor;
+  transform: translate(0.25em, -0.25em) rotate(24deg);
+}
+
+@keyframes nib-pulse {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.quill__specks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.quill__speck {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--ink-wet);
+  animation: speck 600ms var(--ease-out) forwards;
+}
+
+@keyframes speck {
+  from {
+    opacity: 0.85;
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--dx, 8px), var(--dy, -10px)) scale(0.4);
+  }
+}
+
+.quill__foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+}
+
+.quill__counter {
+  margin-inline-end: auto;
+  font-family: var(--font-fair);
+  font-size: 0.9rem;
+  color: rgb(42 20 16 / 0.7);
+}
+
+.quill__counter[data-warm='true'] {
+  color: var(--burgundy);
+  font-weight: 600;
+}
+
+.quill__write {
+  min-width: 44px;
+  min-height: 44px;
+  padding: var(--space-1) var(--space-4);
+  border: 1px solid var(--burgundy);
+  border-radius: var(--radius-sm);
+  background: var(--burgundy-deep);
+  color: var(--parchment);
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.06em;
+  transition:
+    background-color 160ms ease,
+    transform 160ms var(--ease-out);
+}
+
+:lang(ar) .quill__write {
+  letter-spacing: 0;
+  font-variant-caps: normal;
+}
+
+.quill__write:hover {
+  background: var(--burgundy);
+}
+
+.quill__write:active {
+  transform: scale(0.97);
+}
+
+.quill__write[aria-disabled='true'] {
+  opacity: 0.6;
+}
+
+/* ---------- how ink sinks and dries (the keyframes the diary page's question uses) ---------- */
+@keyframes ink-sink {
+  0% {
+    opacity: 1;
+    color: var(--ink-wet-gloss);
+    filter: blur(0);
+  }
+  55% {
+    opacity: 0.7;
+    color: var(--ink-absorbed);
+    filter: blur(1.4px);
+  }
+  100% {
+    opacity: var(--ink-faded);
+    color: var(--ink-dry);
+    text-shadow: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes ink-sink-gone {
+  0% {
+    opacity: 1;
+    color: var(--ink-wet-gloss);
+    filter: blur(0);
+  }
+  60% {
+    opacity: 0.45;
+    color: var(--ink-absorbed);
+    filter: blur(1.4px);
+  }
+  100% {
+    opacity: 0;
+    color: var(--ink-absorbed);
+    filter: blur(1.6px);
+  }
+}
+
+@keyframes ink-block-dry {
+  from {
+    opacity: 1;
+    color: var(--ink-wet-gloss);
+  }
+  to {
+    opacity: var(--ink-faded);
+    color: var(--ink-dry);
+    text-shadow: none;
+  }
+}
+
+@keyframes ink-block-gone {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* A glyph rising: warm light under the surface (blur 1.6 px), in 240 ms; then it develops into ink over 600 ms and dries over 1800 ms. */
+.ink-u--new {
+  animation: ink-develop 2400ms linear backwards;
+}
+
+.ink-u--new.ink-u--word {
+  animation-name: ink-develop-word;
+}
+
+@keyframes ink-develop {
+  0% {
+    opacity: 0;
+    filter: blur(1.6px);
+    color: #f3d9a0;
+    text-shadow: 0 0 6px rgb(242 195 107 / 0.35);
+  }
+  10% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  25% {
+    color: #2a1b12;
+    text-shadow: 0 0 0 rgb(242 195 107 / 0);
+  }
+}
+
+@keyframes ink-develop-word {
+  0% {
+    opacity: 0;
+    filter: blur(1.6px);
+    color: #f3d9a0;
+    text-shadow: 0 0 6px rgb(242 195 107 / 0.35);
+  }
+  13% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  28% {
+    color: #2a1b12;
+    text-shadow: 0 0 0 rgb(242 195 107 / 0);
+  }
+}
+
+/* The pen front of right-to-left writing: a warm band that sweeps leftward over each word as it lands (amber, under 35% alpha, under 600 ms). */
+.pen-fronts {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pen-front {
+  position: absolute;
+  background: linear-gradient(to left, rgb(242 195 107 / 0.34), rgb(242 195 107 / 0));
+  mix-blend-mode: multiply;
+  transform-origin: right center;
+  animation: pen-wipe 400ms var(--ease-out) forwards;
+}
+
+@keyframes pen-wipe {
+  0% {
+    opacity: 0.95;
+    transform: scaleX(0);
+  }
+  65% {
+    opacity: 0.6;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+/* Sources are written in 400 ms after the last glyph, over 200 ms. */
+@keyframes foot-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+}
+
+/* ---------- the diary listening ---------- */
+.ink-listening {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.15rem 0.6rem;
+  margin: var(--space-1) 0 var(--space-3);
+  animation: foot-in 240ms var(--ease-out) backwards;
+}
+
+.ink-listening__well {
+  grid-row: 1;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #3b4258, var(--ink-wet) 65%, var(--ink-wet-gloss));
+  animation: well 2400ms ease-in-out infinite;
+}
+
+@keyframes well {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(29 34 48 / 0.38);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 0.45rem rgb(29 34 48 / 0);
+    transform: scale(1.08);
+  }
+}
+
+.ink-listening__line {
+  grid-column: 2;
+  margin: 0;
+  font-family: var(--font-fair);
+  font-size: 1.05rem;
+  font-style: italic;
+  line-height: 1.4;
+  color: rgb(42 20 16 / 0.82);
+}
+
+:lang(ar) .ink-listening__line {
+  font-style: normal;
+}
+
+.ink-listening__technical {
+  grid-column: 2;
+  margin: 0;
+}
+
+/* ---------- a question that could not be answered ---------- */
+.ink-failure {
+  margin: var(--space-2) 0 var(--space-3);
+  color: var(--ink-reply);
+}
+
+.ink-failure__retry {
+  justify-self: start;
+  min-height: 44px;
+  margin-top: var(--space-1);
+  padding: var(--space-1) var(--space-4);
+  border: 1px solid var(--burgundy);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--burgundy);
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
+}
+
+.ink-failure__retry:hover {
+  background: rgb(90 26 34 / 0.1);
+}
+/* ---------- reduced motion: the research table's equivalents ---------- */
+html[data-reduced-motion='true'] .quill__u,
+html[data-reduced-motion='true'] .ink-u--new,
+html[data-reduced-motion='true'] .quill__nib,
+html[data-reduced-motion='true'] .ink-listening__well {
+  animation: none !important;
+}
+
+/* Sources appear with the text, not 400 ms after it. */
+html[data-reduced-motion='true'] .pg-note[data-fresh='true'] {
+  animation-delay: 0ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-reduced-motion='false']) .quill__u,
+  html:not([data-reduced-motion='false']) .ink-u--new,
+  html:not([data-reduced-motion='false']) .quill__nib,
+  html:not([data-reduced-motion='false']) .ink-listening__well {
+    animation: none !important;
+  }
+
+  html:not([data-reduced-motion='false']) .pg-note[data-fresh='true'] {
+    animation-delay: 0ms !important;
+  }
+}

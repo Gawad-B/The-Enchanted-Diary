@@ -1,0 +1,298 @@
+/* The upload ritual: the controls on the flyleaf, the in-world errors and progress, the drop hint. */
+
+.upload-portal,
+.ingest-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* A column pinned to the foot of its zone: what is said (the messages) gives way and scrolls when it is longer than the
+     room there is, while the buttons keep their place and are never pushed off the paper. */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  box-sizing: border-box;
+  gap: var(--space-2);
+  text-align: center;
+  opacity: 1;
+  transition: opacity 240ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.upload-portal > *,
+.ingest-progress > * {
+  flex: none;
+  max-width: 100%;
+}
+
+.upload-portal__messages,
+.ingest-progress__messages {
+  display: grid;
+  gap: var(--space-1);
+  flex: 0 1 auto;
+  min-height: 0;
+  /* Never wider than the zone: a long unbroken code wraps instead of crossing the frame. */
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  /* ink on parchment, not a dark browser track */
+  scrollbar-color: rgb(42 20 16 / 0.4) transparent;
+}
+
+.upload-portal__messages:focus-visible {
+  outline-offset: -2px;
+}
+
+/* Before the camera has reported where the book is: centred, never unreachable. */
+.upload-portal[data-placed='false'],
+.ingest-progress[data-placed='false'] {
+  top: 50%;
+  left: 50%;
+  width: min(26rem, calc(100vw - 2rem));
+  transform: translate(-50%, -50%);
+}
+
+.upload-portal[data-stable='false'],
+.ingest-progress[data-stable='false'] {
+  opacity: 0;
+}
+
+/* The flyleaf is parchment: its text is ink, not parchment. */
+.upload-portal {
+  color: var(--ink-reply);
+}
+
+/* A phone: the messages get what the buttons do not need. */
+@media (max-width: 719px) {
+  .upload-portal,
+  .ingest-progress {
+    gap: 4px;
+  }
+
+  .upload-portal .in-world-error__line {
+    font-size: var(--text-sm);
+    line-height: 1.3;
+  }
+}
+
+.upload-portal__choose {
+  min-width: 11rem;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--burgundy);
+  background: var(--burgundy-deep);
+  color: var(--parchment);
+  font-size: var(--text-md);
+}
+
+.upload-portal__choose:hover {
+  background: var(--burgundy);
+  border-color: var(--gold-dim);
+}
+
+.upload-portal__hint {
+  margin: 0;
+  font-family: var(--font-fair);
+  font-size: var(--text-sm);
+  line-height: 1.35;
+}
+
+.upload-portal__free-tier {
+  /* One small, quiet line low on the page, over nothing that can be pressed (and never in the way of a pointer). */
+  position: absolute;
+  left: 50%;
+  bottom: 1.6rem;
+  width: min(36rem, calc(100vw - 2rem));
+  margin: 0;
+  transform: translateX(-50%);
+  text-align: center;
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  color: var(--text-muted-on-dark);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.upload-portal__floating {
+  position: absolute;
+  top: var(--space-3);
+  left: 50%;
+  width: min(34rem, calc(100vw - 2rem));
+  transform: translateX(-50%);
+  padding: var(--space-2) var(--space-4);
+  border-block: 1px solid var(--gold-dim);
+  background: rgb(21 16 12 / 0.94);
+  color: var(--parchment);
+  text-align: center;
+}
+
+.upload-portal__floating .in-world-error__technical,
+.upload-portal__floating .upload-portal__hint {
+  color: var(--text-muted-on-dark);
+}
+
+/* An error: the diary's line, then the code and message in the plain face. */
+.in-world-error {
+  display: grid;
+  gap: var(--space-1);
+  max-width: 100%;
+}
+
+.in-world-error__line {
+  margin: 0;
+  font-family: var(--font-fair);
+  font-size: var(--text-md);
+  line-height: 1.35;
+}
+
+.in-world-error__technical {
+  margin: 0;
+}
+
+.upload-portal .technical {
+  color: rgb(42 20 16 / 0.8);
+}
+
+/* Progress: under the closed book (reading) it is parchment on the dark stage; on the flyleaf (uploading) it is ink on parchment. */
+.ingest-progress {
+  color: var(--parchment);
+}
+
+.ingest-progress[data-surface='flyleaf'] {
+  color: var(--ink-reply);
+}
+
+.ingest-progress[data-surface='flyleaf'] .ingest-progress__line {
+  text-shadow: none;
+}
+
+.ingest-progress[data-surface='flyleaf'] .ingest-progress__note {
+  color: var(--ink-reply);
+}
+
+.ingest-progress[data-surface='flyleaf'] .technical {
+  color: rgb(42 20 16 / 0.8);
+}
+
+.ingest-progress__line {
+  margin: 0;
+  font-family: var(--font-fair);
+  font-style: italic;
+  font-size: var(--text-lg);
+  line-height: 1.35;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.7);
+}
+
+:lang(ar) .ingest-progress__line {
+  font-style: normal;
+}
+
+.ingest-progress__note {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--parchment-dim);
+}
+
+.ingest-progress__technical {
+  margin: 0;
+}
+
+.ingest-progress__withdraw {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+/* While a file is dragged over the window: a soft hint, over the book. */
+.drop-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 22%;
+  margin: 0;
+  padding: var(--space-2) var(--space-5);
+  transform: translateX(-50%);
+  border-block: 1px solid var(--candle-gold);
+  background: rgb(21 16 12 / 0.82);
+  color: var(--candle-gold);
+  font-family: var(--font-fair);
+  font-size: var(--text-lg);
+  font-style: italic;
+  pointer-events: none;
+  animation: drop-hint-in 220ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+:lang(ar) .drop-hint {
+  font-style: normal;
+}
+
+@keyframes drop-hint-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+}
+
+.warnings-note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  top: auto;
+  bottom: calc(4rem + var(--space-3));
+}
+
+.warnings-note__line {
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drop-hint {
+    animation: none;
+  }
+
+  .upload-portal,
+  .ingest-progress {
+    transition: none;
+  }
+}
+
+/* The welcome screen: the title over the book, one button under it. */
+.welcome {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7vh var(--space-4) 12vh;
+  pointer-events: none;
+}
+
+.welcome__title {
+  margin: 0;
+  font-family: var(--font-fair);
+  font-size: clamp(2rem, 6vw, 3.6rem);
+  color: var(--parchment);
+  text-shadow: 0 2px 12px rgb(0 0 0 / 0.8);
+  text-align: center;
+}
+
+.welcome__start {
+  pointer-events: auto;
+  padding: var(--space-3) var(--space-6);
+  border: 1px solid var(--candle-gold);
+  background: var(--burgundy-deep);
+  color: var(--parchment);
+  font-size: var(--text-lg);
+}
+
+.upload-portal__title {
+  margin: 0;
+  font-family: var(--font-fair);
+  font-size: var(--text-xl);
+  font-style: italic;
+  line-height: 1.25;
+}
+
+:lang(ar) .upload-portal__title {
+  font-style: normal;
+}

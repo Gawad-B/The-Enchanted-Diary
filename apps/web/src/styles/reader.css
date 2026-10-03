@@ -1,0 +1,435 @@
+/* The reader's controls: the page arrows at the edges of the pages, the bar in the footer, its popovers, and the confirmation dialog. */
+
+/* The overlay layer over the stage: above the 3D scene, below the modal. Its children opt back in to the pointer. */
+.stage__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: calc(var(--z-overlay) + 2);
+  pointer-events: none;
+}
+
+.stage__overlay > * {
+  pointer-events: auto;
+}
+
+/* --- the arrows at the edges of the pages --- */
+.page-controls {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.page-controls__button {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--gold-dim);
+  border-radius: 50%;
+  background: rgb(11 9 7 / 0.72);
+  color: var(--parchment);
+  pointer-events: auto;
+  transition:
+    opacity 200ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.page-controls[data-placed='false'] .page-controls__button {
+  /* Not placed yet (the camera has not said where the book is): nowhere to be, so nothing to reach. */
+  visibility: hidden;
+}
+
+/* While the camera glides the arrows fade out and cannot be clicked; but an arrow that has the keyboard focus is never
+   invisible (its ring would go with it). */
+.page-controls[data-stable='false'] .page-controls__button {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.page-controls[data-stable='false'] .page-controls__button:focus-visible {
+  opacity: 1;
+}
+
+.page-controls__button:hover:not(:disabled) {
+  background: var(--burgundy-deep);
+  border-color: var(--candle-gold);
+}
+
+.page-controls__button:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+/* --- the bar in the footer --- */
+.stage__footer {
+  position: relative;
+  z-index: var(--z-notice);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  /* Physical placement: the bar sits on the side the reading starts from (its data-side), whatever the interface direction. */
+  direction: ltr;
+}
+
+.reader-bar {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-ui);
+  color: var(--text-on-dark);
+}
+
+.reader-bar[data-side='left'] {
+  order: -1;
+  padding-inline-start: var(--space-4);
+}
+
+.reader-bar[data-side='right'] {
+  order: 1;
+  padding-inline-end: var(--space-4);
+}
+
+.reader-bar__indicator {
+  margin: 0;
+  min-width: 7.5rem;
+  font-size: var(--text-sm);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.06em;
+  color: var(--parchment);
+  white-space: nowrap;
+}
+
+:lang(ar) .reader-bar__indicator {
+  letter-spacing: 0;
+  font-variant-caps: normal;
+}
+
+.reader-bar__tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.reader-bar__jump,
+.reader-bar__menu {
+  position: relative;
+}
+
+.reader-bar__button {
+  min-height: 2rem;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-sm);
+  background: rgb(21 16 12 / 0.88);
+  color: var(--parchment);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+:lang(ar) .reader-bar__button {
+  letter-spacing: 0;
+  font-variant-caps: normal;
+}
+
+.reader-bar__button:hover,
+.reader-bar__button[aria-expanded='true'] {
+  background: var(--burgundy-deep);
+  border-color: var(--candle-gold);
+}
+
+.reader-bar__button[aria-pressed='true'] {
+  background: var(--burgundy);
+  border-color: var(--candle-gold);
+}
+
+/* "Read closely": the way into legible text from the spread (where a page's body text is small), so it is the one button of
+   the bar that is filled and carries a picture: one obvious step away. */
+.reader-bar__button--primary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--burgundy-deep);
+  border-color: var(--candle-gold);
+  color: var(--parchment);
+}
+
+.reader-bar__button--primary:hover {
+  background: var(--burgundy);
+}
+
+.reader-bar__button--primary[aria-pressed='true'] {
+  background: var(--candle-gold);
+  border-color: var(--candle-gold);
+  color: var(--ink-black);
+}
+
+.reader-bar__lens {
+  flex: none;
+}
+
+/* A touch screen: every control is at least a finger wide (44 px). */
+@media (pointer: coarse) {
+  .reader-bar__button,
+  .reader-popover__item,
+  .upload-portal__choose,
+  .ingest-progress__withdraw {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+.reader-bar__glyph {
+  font-size: var(--text-lg);
+  line-height: 1;
+}
+
+/* --- popovers: open upward from the bar --- */
+.reader-popover {
+  position: absolute;
+  bottom: calc(100% + var(--space-2));
+  z-index: var(--z-modal);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-sm);
+  background: var(--soot);
+  color: var(--parchment);
+  box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 0.6);
+}
+
+.reader-bar[data-side='left'] .reader-popover {
+  left: 0;
+}
+
+.reader-bar[data-side='right'] .reader-popover {
+  right: 0;
+}
+
+.reader-popover--menu {
+  display: grid;
+  min-width: 14rem;
+  padding: var(--space-1);
+}
+
+.reader-popover__item {
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
+  text-align: start;
+}
+
+.reader-popover__item:hover,
+.reader-popover__item:focus-visible {
+  background: var(--burgundy-deep);
+}
+
+.reader-popover--jump {
+  display: grid;
+  gap: var(--space-3);
+  width: min(26rem, calc(100vw - 2rem));
+  max-height: min(70vh, 34rem);
+  padding: var(--space-3);
+  overflow: hidden;
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.reader-popover__title {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
+  font-weight: 400;
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.06em;
+}
+
+.page-jump__form {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.page-jump__label {
+  font-size: var(--text-xs);
+  color: var(--text-muted-on-dark);
+}
+
+.page-jump__row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.page-jump__input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-sm);
+  background: var(--ink-black);
+  color: var(--parchment);
+  font-size: var(--text-md);
+}
+
+.page-jump__error {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--candle-gold);
+}
+
+.page-jump__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0 var(--space-1) var(--space-1) 0;
+  overflow-y: auto;
+  list-style: none;
+  overscroll-behavior: contain;
+}
+
+.page-jump__thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--umber);
+  border-radius: var(--radius-sm);
+  background: var(--umber-deep);
+  color: var(--parchment);
+}
+
+.page-jump__thumb[aria-current='page'] {
+  border-color: var(--candle-gold);
+}
+
+.page-jump__thumb:hover {
+  border-color: var(--parchment-dim);
+}
+
+.thumbnail {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1.4;
+  background: var(--umber);
+}
+
+.thumbnail canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.page-jump__number {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  padding: 1px 0;
+  background: rgb(11 9 7 / 0.78);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+.reader-note {
+  position: absolute;
+  top: var(--space-3);
+  left: 50%;
+  max-width: min(40rem, calc(100vw - 2rem));
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  transform: translateX(-50%);
+  border-block: 1px solid var(--gold-dim);
+  background: rgb(21 16 12 / 0.92);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+/* --- the confirmation dialog --- */
+.confirm {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: rgb(11 9 7 / 0.74);
+  pointer-events: auto;
+}
+
+.confirm__sheet {
+  display: grid;
+  gap: var(--space-3);
+  width: min(30rem, 100%);
+  padding: var(--space-5);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-sm);
+  background: var(--soot);
+  color: var(--parchment);
+  box-shadow: 0 1.5rem 3rem rgb(0 0 0 / 0.65);
+}
+
+.confirm__title {
+  margin: 0;
+  font-family: var(--font-fair);
+  font-size: var(--text-xl);
+  font-weight: 400;
+}
+
+.confirm__body {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.confirm__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.button--danger {
+  background: var(--burgundy);
+  border-color: var(--candle-gold);
+}
+
+/* A phone: the bar and the footer text stack, and the popovers span the width. */
+@media (max-width: 719px) {
+  .stage__footer {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .reader-bar,
+  .reader-bar[data-side] {
+    order: -1;
+    justify-content: center;
+    padding: var(--space-1) var(--space-3);
+  }
+
+  .reader-popover--jump,
+  .reader-popover--menu {
+    position: fixed;
+    inset-inline: var(--space-3);
+    bottom: 5.5rem;
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-controls__button {
+    transition: none;
+  }
+}

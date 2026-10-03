@@ -1,0 +1,59 @@
+{
+  "name": "enchanted-diary",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Enchanted Diary: an immersive 3D diary that answers questions about an uploaded PDF using real, cited RAG. A fan-inspired interface concept; not an official Warner Bros. or Wizarding World product.",
+  "engines": {
+    "node": "22.x"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail --names server,web --prefix-colors yellow,cyan \"npm run dev -w @enchanted/server\" \"npm run dev -w @enchanted/web\"",
+    "build": "npm run build -w @enchanted/shared && npm run build -w @enchanted/server && npm run build -w @enchanted/web",
+    "start": "npm run start -w @enchanted/server",
+    "test": "vitest run",
+    "test:pg": "docker compose up -d --wait db && TEST_DATABASE_URL=postgres://diary:diary@127.0.0.1:5433/diary REQUIRE_PG_TESTS=1 vitest run --project server apps/server/test/serverless-db.test.ts apps/server/test/db.test.ts apps/server/test/ingest-postgres.test.ts",
+    "test:evals": "RUN_LLM_EVALS=1 vitest run --project server-evals",
+    "calibrate": "RUN_LLM_EVALS=1 RUN_CALIBRATION=1 CALIBRATE_WRITE=1 vitest run --project server-evals apps/server/test/evals/rag-calibration",
+    "calibrate:offline": "tsx --conditions=source scripts/recalibrate.ts",
+    "e2e": "playwright test -c e2e/playwright.config.ts --project=desktop-chromium --project=mobile-chromium",
+    "e2e:live": "playwright test -c e2e/playwright.config.ts --project=live-chromium --pass-with-no-tests",
+    "e2e:perf": "playwright test -c e2e/playwright.config.ts --project=perf-chromium --pass-with-no-tests",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p api/tsconfig.json --noEmit && tsc -p packages/shared/tsconfig.json --noEmit && tsc -p apps/server/tsconfig.json --noEmit && tsc -p apps/web/tsconfig.json --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:up": "docker compose up -d db",
+    "db:migrate": "npm run db:migrate -w @enchanted/server",
+    "vercel-build": "npm run build && npm run check:vercel && npm run db:migrate:build -w @enchanted/server",
+    "check:client": "tsx --conditions=source scripts/check-client-bundle.ts",
+    "check:vercel": "tsx --conditions=source scripts/check-vercel-bundle.ts",
+    "fixtures": "tsx --conditions=source scripts/generate-fixtures.ts"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.63.0",
+    "@types/node": "22.20.4",
+    "@vercel/nft": "1.11.0",
+    "concurrently": "10.0.5",
+    "eslint": "10.11.0",
+    "eslint-plugin-jsx-a11y": "6.10.2",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.12.0",
+    "prettier": "3.9.9",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.0",
+    "vitest": "5.0.3"
+  },
+  "overrides": {
+    "eslint-plugin-jsx-a11y": {
+      "eslint": "$eslint"
+    }
+  }
+}

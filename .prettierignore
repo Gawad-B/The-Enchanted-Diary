@@ -1,0 +1,9 @@
+node_modules
+dist
+coverage
+.data
+.data-*
+test-results
+playwright-report
+package-lock.json
+*.woff2

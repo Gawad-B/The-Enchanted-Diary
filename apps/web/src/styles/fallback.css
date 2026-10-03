@@ -1,0 +1,424 @@
+/*
+ * The simple view (global section T.3) and the accessibility / narrow-screen basics that belong to every view.
+ * Loaded after the other sheets: where a rule here has the same weight as an earlier one, this wins.
+ */
+
+/* ---------- skip link: the first control of the page, visible only while it has the focus ---------- */
+.skip-link {
+  position: fixed;
+  top: 0;
+  inset-inline-start: var(--space-3);
+  z-index: calc(var(--z-modal) + 10);
+  padding: var(--space-3) var(--space-4);
+  min-height: 44px;
+  background: var(--parchment);
+  color: var(--ink-reply);
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
+  text-decoration: underline;
+  transform: translateY(-120%);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(var(--space-3));
+}
+
+/* ---------- the stage in the simple view: a fixed viewport whose cards scroll inside it ---------- */
+.stage[data-presenter='fallback'] {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.stage[data-presenter='fallback'] .stage__main {
+  overflow: hidden;
+}
+
+.stage[data-presenter='fallback'] .stage__presenter {
+  /* no stacking context of its own: the picture of the truth must sit above the footer and the vignette */
+  z-index: auto;
+  place-items: stretch center;
+  min-height: 0;
+  overflow: hidden;
+  padding-block: var(--space-4);
+  padding-inline: max(var(--space-4), env(safe-area-inset-left, 0px))
+    max(var(--space-4), env(safe-area-inset-right, 0px));
+}
+
+.stage[data-presenter='fallback'] .fallback-mount {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  gap: var(--space-3);
+  width: min(100%, 44rem);
+  min-height: 0;
+  height: 100%;
+}
+
+.stage[data-presenter='fallback'] .fallback-mount__note {
+  align-self: center;
+  flex: none;
+}
+
+.simple-view {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* ---------- welcome: the title and one button ---------- */
+.simple-welcome {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-5);
+  text-align: center;
+}
+
+.simple-welcome__title {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: clamp(2.25rem, 9vw, 3.75rem);
+  line-height: 1.2;
+  color: var(--parchment);
+  text-shadow: 0 2px 12px rgb(0 0 0 / 0.7);
+}
+
+.simple-welcome__start {
+  min-height: 44px;
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--text-lg);
+}
+
+/* ---------- the upload and its progress, drawn on a parchment card ---------- */
+.stage[data-presenter='fallback'] .upload-portal,
+.stage[data-presenter='fallback'] .ingest-progress {
+  padding: var(--space-5) var(--space-4);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-md);
+  background: var(--parchment);
+  color: var(--ink-reply);
+  box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 0.55);
+}
+
+.stage[data-presenter='fallback'] .ingest-progress__line,
+.stage[data-presenter='fallback'] .ingest-progress__note {
+  color: var(--ink-reply);
+  text-shadow: none;
+}
+
+.stage[data-presenter='fallback'] .ingest-progress .technical {
+  color: rgb(42 20 16 / 0.8);
+}
+
+/* ---------- the conversation: one parchment card per exchange ---------- */
+.simple-diary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.simple-diary__cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-block: var(--space-1);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.simple-diary__cards:focus {
+  outline: none;
+}
+
+.simple-card {
+  display: grid;
+  gap: var(--space-3);
+  flex: none;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--bronze);
+  border-radius: var(--radius-md);
+  background: var(--parchment);
+  color: var(--ink-reply);
+  box-shadow: 0 0.75rem 1.75rem rgb(0 0 0 / 0.5);
+  overflow-wrap: anywhere;
+  animation: simple-card-in 360ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@keyframes simple-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+/* The reader's words and the diary's answer are written in the same hand. */
+.simple-card__question,
+.simple-card__answer {
+  margin: 0;
+  font-family: var(--font-quill);
+  font-size: 1.375rem;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.simple-card__question {
+  color: var(--ink-wet);
+}
+
+.simple-card__answer {
+  color: var(--ink-reply);
+}
+
+.simple-card__wait {
+  margin: 0;
+  font-family: var(--font-fair);
+  font-style: italic;
+  font-size: var(--text-md);
+  color: var(--ink-dry);
+}
+
+:lang(ar) .simple-card__wait {
+  font-style: normal;
+}
+
+.simple-card__truth {
+  justify-self: start;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-1);
+  border: 0;
+  background: transparent;
+  color: var(--burgundy);
+  font-family: var(--font-quill);
+  font-size: 1.25rem;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.simple-card__truth:hover {
+  color: var(--burgundy-deep);
+}
+
+/* On parchment the dark ring offset of the global focus style would look like a stain: use the burgundy. */
+.simple-card :focus-visible,
+.stage[data-presenter='fallback'] .upload-portal :focus-visible,
+.stage[data-presenter='fallback'] .ingest-progress :focus-visible {
+  outline-color: var(--burgundy);
+  box-shadow: 0 0 0 var(--focus-ring-offset) var(--parchment);
+}
+
+/* ---------- where the reader writes ---------- */
+.simple-ask {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  flex: none;
+  align-items: end;
+}
+
+.simple-ask__busy {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted-on-dark);
+}
+
+.simple-ask__field {
+  width: 100%;
+  min-height: 44px;
+  max-height: 30dvh;
+  padding: var(--space-3);
+  border: 1px solid var(--bronze);
+  border-radius: var(--radius-sm);
+  background: var(--parchment);
+  color: var(--ink-wet);
+  font-family: var(--font-quill);
+  font-size: 1.25rem;
+  line-height: 1.5;
+  resize: none;
+}
+
+.simple-ask__field::placeholder {
+  color: var(--ink-dry);
+  opacity: 0.85;
+  font-family: var(--font-fair);
+  font-size: var(--text-md);
+}
+
+.simple-ask__send {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.simple-diary__tools {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1) var(--space-4);
+}
+
+.simple-diary__clear {
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+.simple-diary__tool {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--text-muted-on-dark);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.simple-diary__tool:hover {
+  color: var(--parchment);
+}
+
+.simple-diary__tool--danger {
+  color: var(--candle-gold);
+}
+
+/* ---------- "Show me the truth": the cited page ---------- */
+.truth {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-modal) + 5);
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  padding-block: max(var(--space-4), env(safe-area-inset-top, 0px))
+    max(var(--space-4), env(safe-area-inset-bottom, 0px));
+  background: rgb(11 9 7 / 0.9);
+}
+
+.truth__dialog {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  max-width: min(100%, 46rem);
+  max-height: 100%;
+  overflow: auto;
+  padding: var(--space-4);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-md);
+  background: var(--soot);
+  color: var(--parchment);
+  text-align: center;
+}
+
+.truth__line {
+  margin: 0;
+  font-family: var(--font-reply);
+  font-size: var(--text-xl);
+  line-height: 1.3;
+}
+
+:lang(ar) .truth__line {
+  font-family: var(--font-quill);
+}
+
+.truth__frame:empty {
+  display: none;
+}
+
+.truth__canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 62dvh;
+  width: auto;
+  height: auto;
+  border-radius: var(--radius-sm);
+}
+
+.truth__page,
+.truth__wait {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted-on-dark);
+}
+
+.truth__close {
+  min-height: 44px;
+}
+
+/* ---------- narrow screens: nothing off-screen, every target at least 44 px ---------- */
+.button,
+.skip-link,
+.simple-card__truth,
+.simple-diary__tool,
+.upload-portal__choose,
+.ingest-progress__withdraw {
+  min-height: 44px;
+}
+
+@media (pointer: coarse), (max-width: 719px) {
+  .stage[data-presenter='fallback'] button,
+  .stage[data-presenter='fallback'] [role='button'] {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 719px) {
+  .stage[data-presenter='fallback'] .stage__presenter {
+    padding-block: var(--space-3);
+    padding-inline: max(var(--space-3), env(safe-area-inset-left, 0px))
+      max(var(--space-3), env(safe-area-inset-right, 0px));
+  }
+
+  .simple-card {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .simple-card__question,
+  .simple-card__answer {
+    font-size: 1.25rem;
+  }
+
+  .stage__disclaimer {
+    padding-bottom: max(var(--space-3), env(safe-area-inset-bottom, 0px));
+  }
+
+  .notice {
+    max-width: 100%;
+    margin-inline: var(--space-3);
+  }
+}
+
+/* A phone held sideways: the card list gets all the room there is. */
+@media (max-height: 480px) and (orientation: landscape) {
+  .stage__disclaimer {
+    padding-block: var(--space-1);
+    font-size: 0.6875rem;
+    line-height: 1.25;
+  }
+
+  .simple-welcome {
+    gap: var(--space-3);
+  }
+
+  .simple-welcome__title {
+    font-size: 2rem;
+  }
+}
+
+/* Windows high contrast: the cards keep their edge. */
+@media (forced-colors: active) {
+  .simple-card,
+  .simple-ask__field {
+    border-color: CanvasText;
+  }
+}

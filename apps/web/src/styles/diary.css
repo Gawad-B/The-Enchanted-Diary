@@ -1,0 +1,428 @@
+/*
+ * The diary's page (global section T): the surface the reader writes on, laid onto the diary's own leaf in the 3D book.
+ * It is a design page, 520 by 728 px, on a ruled grid of 34 px rows (diarypage/typography.ts); the page's perspective is a
+ * CSS matrix written from the book's anchors, so everything here is in the page's own px and is simply paper and ink.
+ * The ink's colours and motion are in ink.css.
+ */
+
+/* A tap beside the page steps back from it. */
+.diary-backdrop {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+}
+
+.diary-surface {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  color: var(--ink-reply);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease-out;
+  /* The transform is written by the placement hook; until then the surface is not shown. */
+}
+
+.diary-surface[data-placed='false'] {
+  visibility: hidden;
+}
+
+.diary-surface[data-ready='true'] {
+  opacity: 1;
+  pointer-events: auto;
+  transition-duration: 160ms;
+}
+
+html[data-reduced-motion='true'] .diary-surface {
+  transition: none;
+}
+
+/* ---------- the lines ---------- */
+.pg-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pg-line {
+  position: absolute;
+  top: var(--row-top);
+  height: 34px;
+  box-sizing: border-box;
+  line-height: 34px;
+  white-space: pre;
+  text-align: start;
+  unicode-bidi: isolate;
+}
+
+/* Where the browser can trim a line to its baseline (text-box), the line's bottom edge is put exactly on the baseline of its row,
+   whatever the faces: the canvas draws the same line on the same baseline. Elsewhere the line sits in its row, a pixel or two off. */
+@supports (text-box: trim-both text alphabetic) {
+  .pg-line {
+    top: auto;
+    bottom: var(--from-foot);
+    height: auto;
+    text-box: trim-both text alphabetic;
+  }
+}
+
+/* The reader's question: wet blue-black ink, until it sinks into the paper and dries to a faint trace. */
+.pg-line[data-role='question'] {
+  color: var(--ink-wet-gloss);
+  text-shadow: 0 0 1px rgb(255 255 255 / 0.22);
+}
+
+.pg-line[data-role='question'][data-state='dried'] {
+  color: var(--ink-dry);
+  text-shadow: none;
+  opacity: var(--ink-faded);
+}
+
+.pg-line[data-role='question'][data-state='sinking'] .ink-q__w {
+  animation: ink-sink var(--sink-word, 520ms) var(--ease-out)
+    calc(var(--sink-hold, 150ms) + var(--i, 0) * var(--sink-stagger, 45ms)) both;
+}
+
+.pg-line[data-role='question'][data-state='sinking'][data-gone='true'] .ink-q__w {
+  animation-name: ink-sink-gone;
+}
+
+/* Reduced motion: the whole line dries at once instead. */
+.pg-line[data-role='question'][data-state='sinking'][data-crossfade='true'] {
+  animation: ink-block-dry 250ms ease-out both;
+}
+
+.pg-line[data-role='question'][data-state='sinking'][data-crossfade='true'] .ink-q__w {
+  animation: none;
+}
+
+.pg-line[data-role='question'][data-state='sinking'][data-crossfade='true'][data-gone='true'] {
+  animation-name: ink-block-gone;
+}
+
+/* The diary's reply: the first sentence in its own hand, the rest in fair copy. */
+.pg-line[data-role='answer'] {
+  color: var(--ink-dry-reply);
+}
+
+.pg-line[data-role='heading'] {
+  color: var(--ink-lead-dry);
+}
+
+.pg-c--lead {
+  color: var(--ink-lead-dry);
+}
+
+/* ---------- the diary listening, and a question that could not be answered ---------- */
+.pg-aside {
+  position: absolute;
+  font-size: 17px;
+}
+
+.pg-aside .ink-listening__line {
+  font-size: 19px;
+  line-height: 26px;
+}
+
+.pg-aside .in-world-error__line {
+  font-size: 19px;
+  line-height: 26px;
+}
+
+.pg-aside .ink-failure__retry {
+  min-height: 40px;
+}
+
+/* ---------- the quill: the real textarea, on the page ---------- */
+.pg-quill {
+  position: absolute;
+}
+
+.pg-quill .quill__textarea,
+.pg-quill .quill__mirror-inner {
+  padding: 0 2px;
+  font-size: 27px;
+  line-height: 34px;
+}
+
+.pg-quill .quill__textarea {
+  max-height: calc(var(--quill-rows, 4) * 34px);
+}
+
+.pg-quill .quill__textarea::placeholder {
+  font-size: 20px;
+}
+
+/* The page is already ruled: the quill's own line is only drawn for focus. */
+.pg-quill .quill__field {
+  border-bottom-color: transparent;
+}
+
+.pg-quill .quill__foot {
+  padding-top: 4px;
+}
+
+.pg-quill .quill__counter {
+  font-size: 15px;
+}
+
+.pg-quill .quill__write {
+  min-height: 40px;
+  font-size: 17px;
+}
+
+/* ---------- the notes in the margin: where the answer found itself ---------- */
+.pg-note {
+  position: absolute;
+  display: block;
+  box-sizing: border-box;
+  padding: 0 0 0 11px;
+  border: 0;
+  background: transparent;
+  color: var(--burgundy);
+  line-height: 34px;
+  text-align: start;
+  white-space: nowrap;
+  transform: rotate(-0.8deg);
+  transform-origin: left center;
+  cursor: pointer;
+}
+
+.pg-note::after {
+  content: '';
+  position: absolute;
+  inset-inline: 4px;
+  top: 30px;
+  border-bottom: 1px dashed rgb(90 26 34 / 0.55);
+}
+
+.pg-note[data-kind='consulted'] {
+  color: rgb(42 20 16 / 0.82);
+}
+
+.pg-note[data-kind='consulted']::after {
+  border-bottom-style: dotted;
+  border-bottom-color: rgb(42 20 16 / 0.5);
+}
+
+.pg-note:hover {
+  background: rgb(224 168 79 / 0.2);
+}
+
+.pg-note[data-fresh='true'] {
+  animation: foot-in 200ms var(--ease-out) 400ms backwards;
+}
+
+/* ---------- the page's own controls ---------- */
+.pg-controls {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pg-controls > * {
+  pointer-events: auto;
+}
+
+.pg-leave,
+.pg-turn {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgb(59 44 38 / 0.35);
+  border-radius: 50%;
+  background: rgb(233 220 192 / 0.55);
+  color: var(--ink-dry-reply);
+  font-family: var(--font-fair);
+  font-size: 26px;
+  line-height: 1;
+  transition:
+    background-color 160ms ease,
+    opacity 160ms ease;
+}
+
+.pg-leave:hover,
+.pg-turn:hover:not(:disabled) {
+  background: rgb(224 168 79 / 0.4);
+}
+
+.pg-turn:disabled {
+  opacity: 0.3;
+}
+
+.pg-leave {
+  top: 14px;
+}
+
+.pg-controls[data-book='ltr'] .pg-leave {
+  right: 14px;
+}
+
+.pg-controls[data-book='rtl'] .pg-leave {
+  left: 14px;
+}
+
+.pg-turn {
+  bottom: 14px;
+}
+
+.pg-controls[data-book='ltr'] .pg-turn--earlier,
+.pg-controls[data-book='rtl'] .pg-turn--later {
+  left: 18px;
+}
+
+.pg-controls[data-book='ltr'] .pg-turn--later,
+.pg-controls[data-book='rtl'] .pg-turn--earlier {
+  right: 18px;
+}
+
+.pg-folio {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 22px;
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-fair);
+  font-size: 15px;
+  color: rgb(42 20 16 / 0.62);
+  pointer-events: none;
+}
+
+/* ---------- the ribbon: back to the diary after a citation took the reader to the manuscript ---------- */
+.diary-ribbon {
+  position: absolute;
+  top: 0;
+  inset-inline-end: clamp(16px, 8vw, 120px);
+  pointer-events: none;
+  filter: drop-shadow(0 6px 8px rgb(0 0 0 / 0.5));
+  animation: ribbon-down 420ms var(--ease-out) backwards;
+}
+
+.diary-ribbon > * {
+  pointer-events: auto;
+}
+
+.diary-ribbon__button {
+  display: block;
+  min-width: 5.5rem;
+  max-width: 9rem;
+  padding: 0.9rem 0.9rem 2.4rem;
+  border: 0;
+  background: var(--burgundy);
+  color: var(--parchment);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 1.1rem), 0 100%);
+  font-family: var(--font-reply);
+  font-size: 1.05rem;
+  line-height: 1.25;
+  text-align: center;
+  transition: background-color 160ms ease;
+}
+
+.diary-ribbon__button:hover {
+  background: #6d2029;
+}
+
+@keyframes ribbon-down {
+  from {
+    transform: translateY(-100%);
+  }
+}
+
+html[data-reduced-motion='true'] .diary-ribbon {
+  animation: none;
+}
+
+/* ---------- "Clear the conversation", in the diary menu ---------- */
+.clear-ask {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.clear-ask__text {
+  margin: 0;
+  padding: 0.35rem 0.75rem 0;
+  font-family: var(--font-fair);
+  font-size: var(--text-sm);
+}
+
+.clear-ask__danger {
+  color: var(--burgundy);
+}
+
+/* ---------- while the reader writes, the manuscript's own page controls step aside ---------- */
+.stage[data-writing='true'] .page-controls,
+.stage[data-writing='true'] .reader-bar__jump,
+.stage[data-writing='true'] .reader-bar__button--primary:not(.write-toggle) {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-reduced-motion='false']) .diary-surface {
+    transition: none;
+  }
+
+  html:not([data-reduced-motion='false']) .diary-ribbon {
+    animation: none;
+  }
+}
+
+/* Real writing: no box, no coloured underline, no send button, no hint. The ink appears as typed; Enter commits. */
+.pg-quill .quill__field,
+.pg-quill .quill__field:focus-within,
+.pg-quill .quill__field:has(.quill__textarea:focus-visible) {
+  border-bottom-color: transparent;
+  box-shadow: none;
+}
+
+.pg-quill .quill__write {
+  display: none;
+}
+
+.pg-quill .quill__textarea::placeholder {
+  color: transparent;
+}
+
+.pg-line[data-role='answer'] .ink-u,
+.pg-c--lead {
+  color: var(--ink-lead-dry);
+}
+
+/* What to do next, under the answer: a faint handwritten line and a blinking caret. */
+.pg-hint {
+  position: absolute;
+  height: 34px;
+  line-height: 34px;
+  font:
+    22px 'La Belle Aurore',
+    'Aref Ruqaa',
+    'Segoe Script',
+    cursive;
+  line-height: 34px;
+  color: var(--ink-dry);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.pg-caret {
+  display: inline-block;
+  width: 2px;
+  height: 22px;
+  margin-inline-start: 6px;
+  vertical-align: middle;
+  background: var(--ink-dry);
+  animation: pg-blink 1.1s steps(1) infinite;
+}
+
+@keyframes pg-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+html[data-reduced-motion='true'] .pg-caret {
+  animation: none;
+}

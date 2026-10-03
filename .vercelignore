@@ -1,0 +1,29 @@
+# What `vercel` (the CLI) must never upload from a working copy. The CLI does not read .gitignore: it uses its own fixed list
+# plus this file, and its list does not cover `.env` (the Gemini key), the local database, uploaded PDFs, model files or the
+
+# environment (the example file is not a secret)
+.env
+.env.*
+!.env.example
+
+# local data: PGlite database, uploaded PDFs, OCR and model caches, scratch space
+.data
+.data-*
+
+# NOTE: `**/dist` below is right for `vercel` (it builds on Vercel), and WRONG for `vercel deploy --prebuilt`, where the CLI applies this
+# file to the built functions too and would drop apps/server/dist and packages/shared/dist. Never deploy prebuilt from here.
+
+
+# build output and tooling (the build makes them again on Vercel)
+**/dist
+node_modules
+coverage
+.vitest
+test-results
+playwright-report
+
+# logs and stray files
+*.log
+timeout
+.DS_Store
+.vercel

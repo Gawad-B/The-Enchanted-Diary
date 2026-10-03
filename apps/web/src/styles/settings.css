@@ -1,0 +1,79 @@
+/* The one quiet control: an icon in the top corner that is dim until the pointer or the keyboard comes near. */
+.settings {
+  position: absolute;
+  inset-block-start: 12px;
+  inset-inline-end: 12px;
+  z-index: calc(var(--z-overlay) + 3);
+  pointer-events: auto;
+}
+
+.settings__button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--parchment);
+  cursor: pointer;
+  opacity: 0.35;
+  transition: opacity 200ms ease-out;
+}
+
+@media (hover: none) {
+  .settings__button {
+    opacity: 0.7;
+  }
+}
+
+.settings:hover .settings__button,
+.settings:focus-within .settings__button,
+.settings[data-open='true'] .settings__button {
+  opacity: 1;
+}
+
+.settings__panel {
+  position: absolute;
+  inset-block-start: 44px;
+  inset-inline-end: 0;
+  display: grid;
+  gap: 10px;
+  min-width: 250px;
+  max-width: calc(100vw - 24px);
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: rgb(18 12 8 / 0.92);
+  border: 1px solid rgb(168 120 47 / 0.5);
+  color: var(--parchment);
+  font-family: var(--font-ui);
+}
+
+.settings__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings__label {
+  flex: 1 0 100%;
+  color: var(--parchment-dim);
+  font-size: 0.9rem;
+}
+
+.settings__choice {
+  min-height: 36px;
+  padding: 4px 12px;
+  border: 1px solid rgb(168 120 47 / 0.5);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--parchment);
+  font: inherit;
+  cursor: pointer;
+}
+
+.settings__choice[aria-pressed='true'] {
+  background: rgb(224 168 79 / 0.25);
+  border-color: var(--candle-gold);
+}

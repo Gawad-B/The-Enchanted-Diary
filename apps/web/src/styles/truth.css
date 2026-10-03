@@ -1,0 +1,227 @@
+/*
+ * "Show me the truth": the diary's line in ink, the colour of a memory over the stage, and the cited page.
+ * The colour grade is a CSS filter over the presenter (the canvas or the flat book): sepia, a little dimmer, warm.
+ */
+
+.stage__presenter {
+  transition: filter 700ms var(--ease-out, ease-out);
+}
+
+.stage[data-phase='revealing'] .stage__presenter,
+.stage[data-phase='memory'] .stage__presenter {
+  filter: sepia(0.62) saturate(1.1) brightness(0.86) contrast(1.04);
+}
+
+.truth {
+  position: absolute;
+  inset: 0;
+  z-index: calc(var(--z-overlay) + 2);
+  pointer-events: none;
+}
+
+.truth > * {
+  pointer-events: auto;
+}
+
+/* Soft light leaks and grain, no copied footage: layered gradients and an SVG noise. */
+.truth::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 45% at 8% 4%, rgb(255 196 110 / 0.22), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 96% 92%, rgb(224 150 70 / 0.18), transparent 70%),
+    radial-gradient(ellipse 90% 80% at 50% 50%, transparent 55%, rgb(20 10 4 / 0.55) 100%);
+}
+
+.truth[data-phase='manuscript']::before {
+  opacity: 0;
+}
+
+.truth__scrim {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+.truth__line {
+  position: absolute;
+  inset-inline: 6%;
+  bottom: 16%;
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-reply);
+  font-size: clamp(26px, 4.4vw, 46px);
+  line-height: 1.3;
+  color: var(--ink-glow);
+  text-shadow:
+    0 0 14px rgb(242 195 107 / 0.55),
+    0 1px 2px rgb(0 0 0 / 0.7);
+  transition: opacity 500ms ease-out;
+  pointer-events: none;
+}
+
+.truth__line[lang='ar'] {
+  font-family: 'Aref Ruqaa', var(--font-reply);
+}
+
+.truth__line-rest {
+  opacity: 0;
+}
+
+.truth__line[data-fading='true'] {
+  opacity: 0;
+}
+
+.truth__skip {
+  position: absolute;
+  inset-inline-end: 20px;
+  bottom: 20px;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: var(--radius-md, 6px);
+  background: transparent;
+  color: var(--parchment-dim);
+  font-family: var(--font-quill);
+  font-size: 20px;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.truth__skip:hover,
+.truth__skip:focus-visible {
+  opacity: 1;
+  color: var(--parchment);
+}
+
+.truth__page {
+  position: absolute;
+  inset: 3% 0 3% 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  justify-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  pointer-events: none;
+}
+
+.truth__page > * {
+  pointer-events: auto;
+}
+
+.truth__sheet {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  max-width: min(100%, 640px);
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  box-shadow:
+    0 0 60px rgb(255 190 90 / 0.28),
+    0 14px 40px rgb(0 0 0 / 0.55);
+  background: rgb(233 220 192 / 0.12);
+}
+
+.truth__canvas-holder {
+  display: grid;
+  place-items: center;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.truth__canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 3px;
+}
+
+.truth__failed {
+  margin: 0;
+  padding: 24px;
+  color: var(--parchment);
+  font-family: var(--font-quill);
+  text-align: center;
+}
+
+.truth__caption {
+  margin: 0;
+  color: var(--parchment-dim);
+  font-family: var(--font-quill);
+  font-size: 20px;
+}
+
+.truth__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.truth__hand {
+  padding: 4px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-glow);
+  font-family: var(--font-quill);
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.truth__hand:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* The ribbon: a strip of faded burgundy cloth with a notched end, like a bookmark. */
+.truth__ribbon {
+  padding: 8px 22px 12px;
+  border: 0;
+  background: linear-gradient(#6b1f2a, #4d141d);
+  color: var(--parchment);
+  font-family: var(--font-quill);
+  font-size: 22px;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
+  cursor: pointer;
+}
+
+.truth__ribbon:hover:not(:disabled),
+.truth__ribbon:focus-visible {
+  background: linear-gradient(#85293a, #5c1824);
+}
+
+.truth__ribbon:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.truth [lang='ar'],
+.stage[dir='rtl'] .truth__ribbon,
+.stage[dir='rtl'] .truth__hand,
+.stage[dir='rtl'] .truth__skip,
+.stage[dir='rtl'] .truth__caption {
+  font-family: 'Aref Ruqaa', var(--font-quill);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage__presenter {
+    transition-duration: 300ms;
+  }
+
+  .truth__line {
+    transition: none;
+  }
+}
+
+/* While the truth scene is open the reader bar steps aside, so its controls never sit over "Return to my page" (phones). */
+.stage[data-phase='revealing'] .reader-bar,
+.stage[data-phase='memory'] .reader-bar {
+  visibility: hidden;
+  pointer-events: none;
+}

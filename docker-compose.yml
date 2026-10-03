@@ -1,0 +1,24 @@
+# PostgreSQL with pgvector for development. The application also runs without it (embedded PGlite).
+# `npm run db:up` starts it; set DATABASE_URL=postgres://diary:diary@127.0.0.1:5433/diary to use it.
+# The vector extension is created by the first migration, not here.
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:5433:5432'
+    environment:
+      POSTGRES_DB: diary
+      # Development credentials only. Never reuse them anywhere that is not your own machine.
+      POSTGRES_USER: diary
+      POSTGRES_PASSWORD: diary
+    volumes:
+      - diary-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U diary -d diary']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  diary-db:

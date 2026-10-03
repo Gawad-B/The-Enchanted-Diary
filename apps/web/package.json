@@ -1,0 +1,48 @@
+{
+  "name": "@enchanted/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Vite + React + React Three Fiber front end for The Enchanted Diary, with a 2D fallback.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@enchanted/shared": "0.1.0",
+    "@fontsource/amiri": "5.3.0",
+    "@fontsource/aref-ruqaa": "5.3.0",
+    "@fontsource/aref-ruqaa-ink": "5.3.0",
+    "@fontsource/cormorant-infant": "5.3.0",
+    "@fontsource/eb-garamond": "5.3.0",
+    "@fontsource/la-belle-aurore": "5.3.0",
+    "@fontsource/petit-formal-script": "5.3.0",
+    "@fontsource/pinyon-script": "5.3.0",
+    "@react-three/drei": "10.7.9",
+    "@react-three/fiber": "9.8.1",
+    "@react-three/postprocessing": "3.1.3",
+    "@vercel/blob": "2.8.0",
+    "maath": "0.10.8",
+    "pdfjs-dist": "6.3.289",
+    "postprocessing": "6.39.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "three": "0.186.1",
+    "zustand": "5.0.15"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.7",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/three": "0.186.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "axe-core": "4.13.0",
+    "jsdom": "30.1.1",
+    "vite": "8.3.1"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "npm run vercel-build",
+  "outputDirectory": "apps/web/dist",
+  "functions": {
+    "api/**/*.ts": {
+      "maxDuration": 300,
+      "includeFiles": "{apps/server/dist/db/migrations/**,apps/server/dist/ingest/worker/**,node_modules/pdfjs-dist/{cmaps,standard_fonts,wasm,iccs}/**,node_modules/pdfjs-dist/legacy/build/**,node_modules/@napi-rs/{canvas,canvas-linux-x64-gnu}/**}",
+      "excludeFiles": "{node_modules/tesseract.js/**,node_modules/tesseract.js-core/**,node_modules/@tesseract.js-data/**,node_modules/@electric-sql/**,node_modules/@huggingface/**,node_modules/onnxruntime-node/**,node_modules/onnxruntime-web/**,node_modules/onnxruntime-common/**}"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/((?!api(?:/|$)|assets/).*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/((?!api(?:/|$)).*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "same-origin" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' https://vercel.com/api/blob/; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    }
+  ],
+  "crons": [{ "path": "/api/cron/retention", "schedule": "0 9 * * *" }]
+}

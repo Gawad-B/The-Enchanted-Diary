@@ -1,0 +1,255 @@
+/* The stage: a full-viewport dark room the diary sits in. Presenters (3D scene or 2D fallback) fill the slot. */
+.stage {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-height: 100dvh;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 46%, rgb(224 168 79 / 0.1), transparent 70%), var(--stage-bg);
+}
+
+/* Deep shadows at the edges, as if the only light were one low candle. CSS only, so it costs no GPU time.
+   When the 3D scene draws its own vignette (post-processing) this one steps aside: never two. */
+.stage__vignette {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  pointer-events: none;
+  background: radial-gradient(ellipse 85% 80% at 50% 48%, transparent 45%, rgb(0 0 0 / 0.72) 100%);
+}
+
+.stage[data-vignette='scene'] .stage__vignette {
+  display: none;
+}
+
+.stage__main {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-height: 0;
+}
+
+/* Only ever focused by the program (after a phase change took the focused control away), never a place to type or click. */
+.stage__main:focus {
+  outline: none;
+}
+
+/* The slot that holds exactly one presenter. A horizontal swipe on it turns a page (touch-action keeps the browser's own
+   horizontal gestures out of the way; vertical panning stays). */
+.stage__presenter {
+  z-index: var(--z-stage);
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  padding: var(--space-5) var(--space-4);
+  touch-action: pan-y pinch-zoom;
+}
+
+.stage__disclaimer {
+  /* A small line in the bottom-right corner (owner direction T.4.9); it overlaps nothing that can be pressed. */
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-notice);
+  max-width: min(22rem, 60vw);
+  margin: 0;
+  padding: 0 var(--space-3) var(--space-2) var(--space-3);
+  pointer-events: none;
+  text-align: right;
+  font-family: var(--font-ui);
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  color: var(--text-muted-on-dark);
+}
+
+/* The scene mount: the 3D presenter fills the whole stage (the nearest positioned ancestor is .stage). */
+.scene-mount {
+  position: absolute;
+  inset: 0;
+}
+
+/* The 2D fallback mount: today it holds the closed diary and its caption. */
+.fallback-mount {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-5);
+  width: min(100%, 26rem);
+}
+
+.fallback-mount__caption {
+  margin: 0;
+  max-width: 24rem;
+  text-align: center;
+  font-family: var(--font-fair);
+  font-style: italic;
+  font-size: var(--text-lg);
+  line-height: 1.4;
+  color: var(--parchment-dim);
+}
+
+.fallback-mount__note {
+  margin: 0;
+  max-width: 24rem;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--text-muted-on-dark);
+}
+
+:lang(ar) .fallback-mount__caption {
+  /* Only the upright Amiri face is bundled; an italic would be a synthesised slant, which Arabic never has. */
+  font-style: normal;
+}
+
+.closed-diary {
+  display: block;
+  width: min(72vw, 20rem);
+  height: auto;
+  filter: drop-shadow(0 1.5rem 1.25rem rgb(0 0 0 / 0.65));
+}
+
+/* An RTL interface lays the closed book out with its binding on the right. */
+.closed-diary--rtl {
+  transform: scaleX(-1);
+}
+
+/* Notices (immersive view stopped, WebGL missing) */
+.notice {
+  position: relative;
+  z-index: var(--z-notice);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3) var(--space-4);
+  margin: 0 auto var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  max-width: 44rem;
+  border-block: 1px solid var(--gold-dim);
+  background: rgb(21 16 12 / 0.9);
+  color: var(--text-on-dark);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.notice p {
+  margin: 0;
+}
+
+.button {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-sm);
+  background: var(--burgundy-deep);
+  color: var(--parchment);
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.06em;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.button:hover {
+  background: var(--burgundy);
+  border-color: var(--candle-gold);
+}
+
+:lang(ar) .button {
+  letter-spacing: 0;
+  font-variant-caps: normal;
+}
+
+/* "The spell failed." */
+.spell-failed {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--space-4);
+  min-height: 100dvh;
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  background: radial-gradient(ellipse 70% 60% at 50% 45%, var(--burgundy-deep), var(--ink-black) 75%);
+}
+
+.spell-failed__title {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: var(--text-2xl);
+  font-weight: 400;
+  color: var(--parchment);
+}
+
+.spell-failed__detail {
+  margin: 0;
+  max-width: 40rem;
+  padding: var(--space-2) var(--space-3);
+  border-inline-start: 2px solid var(--gold-dim);
+  text-align: start;
+}
+
+/* The button over the closed 3D diary: invisible until the pointer or keyboard reaches it. */
+.open-diary {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Above the vignette, which must not dim its caption. */
+  z-index: calc(var(--z-overlay) + 1);
+  display: grid;
+  align-items: end;
+  justify-items: center;
+  padding: 0 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--parchment);
+  cursor: pointer;
+  opacity: 1;
+  transition: opacity 240ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.open-diary[data-stable='false'] {
+  opacity: 0;
+}
+
+/* Before the book's place on the screen is known: a centred default, never unreachable. */
+.open-diary[data-placed='false'] {
+  top: 50%;
+  left: 50%;
+  width: min(60vmin, 28rem);
+  height: min(60vmin, 28rem);
+  transform: translate(-50%, -50%);
+}
+
+.open-diary__caption {
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-ui);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.08em;
+  font-size: var(--text-md);
+  background: rgb(11 9 7 / 0.55);
+  border-block: 1px solid var(--gold-dim);
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 260ms cubic-bezier(0.32, 0.72, 0, 1),
+    transform 260ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.open-diary:hover .open-diary__caption,
+.open-diary:focus-visible .open-diary__caption {
+  opacity: 1;
+  transform: none;
+}
+
+:lang(ar) .open-diary__caption {
+  letter-spacing: 0;
+  font-variant-caps: normal;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .open-diary,
+  .open-diary__caption {
+    transition: none;
+  }
+}
