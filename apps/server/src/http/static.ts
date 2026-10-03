@@ -1,6 +1,5 @@
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import fastifyStatic from '@fastify/static';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { Config } from '../config.js';
 import { REPO_ROOT } from '../config.js';
@@ -33,6 +32,9 @@ export async function registerWebStatic(
     );
     return (request, reply) => sendNotFound(request, reply, config);
   }
+  // Loaded only when this server serves the SPA itself (never on Vercel, where `webDist` is null): @fastify/static requires an
+  // ES-module dependency (content-disposition 3), which Vercel's function runtime refuses to require() at start.
+  const { default: fastifyStatic } = await import('@fastify/static');
   await app.register(fastifyStatic, {
     root: webDist,
     wildcard: false,
