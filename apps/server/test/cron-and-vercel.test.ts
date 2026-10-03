@@ -313,15 +313,21 @@ describe('vercel.json', () => {
     ]) {
       expect(fn?.includeFiles, needed).toContain(needed);
     }
+    // Vercel refuses a pattern longer than 256 characters; the packages are listed in one brace group.
+    expect(fn?.excludeFiles.length).toBeLessThanOrEqual(256);
+    expect(fn?.includeFiles.length).toBeLessThanOrEqual(256);
+    const excluded = /\{([^}]*)\}/u.exec(fn?.excludeFiles ?? '')?.[1]?.split(',') ?? [];
     for (const unwanted of [
-      'tesseract.js/',
+      'tesseract.js',
       'tesseract.js-core',
       '@tesseract.js-data',
       '@electric-sql',
       '@huggingface',
-      'onnxruntime',
+      'onnxruntime-node',
+      'onnxruntime-web',
+      'onnxruntime-common',
     ]) {
-      expect(fn?.excludeFiles, unwanted).toContain(unwanted);
+      expect(excluded, unwanted).toContain(unwanted);
     }
   });
 
