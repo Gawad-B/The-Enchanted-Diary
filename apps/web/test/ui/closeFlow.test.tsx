@@ -36,7 +36,7 @@ beforeEach(() => {
     sessionChecked: true,
     documentId: DOCUMENT_ID,
   });
-  stop = startCloseEffect();
+  stop = startCloseEffect({ restart: () => undefined });
 });
 afterEach(() => {
   stop();

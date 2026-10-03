@@ -43,7 +43,7 @@ beforeEach(() => {
   configStore.getState().setConfig(null);
   experienceStore.setState({ ...initialExperienceState, phase: 'awaiting', sessionChecked: true });
   FakeXhr.install();
-  stops = [startCloseEffect(), startUploadEffect(), startIngestEffect()];
+  stops = [startCloseEffect({ restart: () => undefined }), startUploadEffect(), startIngestEffect()];
 });
 afterEach(() => {
   for (const stop of stops) stop();

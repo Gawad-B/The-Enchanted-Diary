@@ -21,12 +21,13 @@ function setup(phase: Phase = 'manuscript') {
   const remove = vi.fn(() => Promise.resolve());
   const reset = vi.fn(() => Promise.resolve());
   const onReleased = vi.fn();
-  const stop = startCloseEffect({ experience, documents, remove, reset, onReleased });
+  const restart = vi.fn();
+  const stop = startCloseEffect({ experience, documents, remove, reset, onReleased, restart });
   const dispatch = experience.getState().dispatch;
   const finishClosing = (): void => {
     dispatch({ type: 'CLOSE_DONE', epoch: experience.getState().epoch });
   };
-  return { experience, documents, remove, reset, onReleased, stop, dispatch, finishClosing };
+  return { experience, documents, remove, reset, onReleased, restart, stop, dispatch, finishClosing };
 }
 
 const stops: (() => void)[] = [];
@@ -50,6 +51,21 @@ describe('the close effect', () => {
     expect(harness.documents.getState().document).toBeNull();
     expect(harness.documents.getState().file).toBeNull();
     expect(harness.onReleased).toHaveBeenCalled();
+  });
+
+  it('"Close this diary" starts again from the welcome screen once the server has let the diary go (no old closing screens)', async () => {
+    const harness = setup();
+    stops.push(harness.stop);
+    harness.dispatch({ type: 'CLOSE_REQUESTED' });
+    await vi.waitFor(() => expect(harness.restart).toHaveBeenCalledTimes(1));
+  });
+
+  it('"Offer another manuscript" does not restart: its upload follows', async () => {
+    const harness = setup();
+    stops.push(harness.stop);
+    harness.dispatch({ type: 'REPLACE_REQUESTED' });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(harness.restart).not.toHaveBeenCalled();
   });
 
   it('"Start a new session": resets the session on the server instead of deleting one document', () => {

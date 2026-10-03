@@ -34,7 +34,9 @@ export function startCloseEffect(options: CloseEffectOptions = {}): () => void {
   const reset = options.reset ?? (() => resetSession());
   const onReleased = options.onReleased ?? (() => undefined);
   const restart = options.restart ?? (() => window.location.reload());
-  const restartAfter = (work: Promise<unknown>): void => {
+  const restartAfter = (work: Promise<unknown>, toWelcome: boolean): void => {
+    // Only a real close (or a new session) starts again from the welcome screen; "offer another manuscript" goes on to its upload.
+    if (!toWelcome) return;
     const settled = work.catch(() => undefined);
     const timeout = new Promise<void>((resolve) => setTimeout(resolve, 3000));
     void Promise.race([settled, timeout]).then(restart);
@@ -56,15 +58,15 @@ export function startCloseEffect(options: CloseEffectOptions = {}): () => void {
         resetting.catch((error: unknown) => {
           console.warn('[close] the session could not be reset', error);
         });
-        restartAfter(resetting);
+        restartAfter(resetting, state.afterClose === 'discovery');
       } else if (id && !lost) {
         const removing = remove(id);
         removing.catch((error: unknown) => {
           console.warn('[close] the document could not be deleted', error);
         });
-        restartAfter(removing);
+        restartAfter(removing, state.afterClose === 'discovery');
       } else {
-        restartAfter(Promise.resolve());
+        restartAfter(Promise.resolve(), state.afterClose === 'discovery');
       }
       return;
     }

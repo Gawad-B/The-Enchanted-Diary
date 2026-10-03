@@ -17,19 +17,23 @@ artwork, footage, music or dialogue.
 
 ## The experience
 
-1. **Welcome.** The title and one button, "Start revealing the secrets". Behind it a book riffles its pages slowly.
-2. **The riffle.** Pressing the button plays a long, fast riffle, then the book settles open on a blank diary page and the
-   camera dives in.
-3. **One-button upload.** The page offers "Offer a manuscript (PDF)" (plus a quieter "Use the sample manuscript"). Progress
-   appears as ink on the page.
+1. **Welcome.** The title and one button, "Start revealing the secrets". Behind it the open book keeps turning its pages
+   forward.
+2. **The riffle.** Pressing the button plays a long, fast riffle that stops on a page in the middle of the book reading
+   "Offer a manuscript", with a single button to choose a PDF. Reading progress appears as ink on the page.
+3. **Gaining the knowledge.** When the manuscript is read, the book riffles on to a fresh page headed "It's the time for you
+   to gain the knowledge", and the camera dives onto it.
 4. **Writing on the page.** You write directly on the page: no box, no send button; Enter commits. The ink sinks in and the
-   reply writes itself in the same hand.
+   reply writes itself in the same hand. A faint "Write your next question…" under each answer shows what to do next.
 5. **One question per page.** Each question and answer gets its own page; a new question turns a leaf. Earlier exchanges stay
-   on earlier pages as dried ink.
-6. **Show me the truth.** Under an answer, a small handwritten link riffles the book to the cited PDF page, zooms in on the
-   passage, and a ribbon brings you back to your page.
+   on earlier pages as dried ink. Escape zooms out to the whole book.
+6. **Show me the truth.** Under an answer, a small handwritten link: the diary says "Let me show you the truth…", the book
+   riffles to the cited PDF page, the camera zooms in and out, the passage glows, and a ribbon brings you back to your page.
+7. **Closing.** "Close this diary" (in the ⋯ menu) lets the manuscript go and starts again from the welcome screen.
 
-A simple 2D view (automatic when WebGL is unavailable, or on request) offers the same conversation as plain accessible UI.
+A small settings icon (top right) switches sound (soft procedural candle, page and quill sounds, off by default), reduced
+motion and the interface language (English / العربية). A simple 2D view (automatic when WebGL is unavailable) offers the
+same conversation as plain accessible UI.
 
 ## Features
 
@@ -43,6 +47,13 @@ A simple 2D view (automatic when WebGL is unavailable, or on request) offers the
   that are not statements about the document's silence are dropped from the answer.
 - **Everything is Gemini.** Answers, embeddings and OCR use your `GEMINI_API_KEY`. No local models are needed.
 
+## Tech stack
+
+TypeScript monorepo (npm workspaces) · **Web:** Vite, React, React Three Fiber / Three.js, zustand · **Server:** Fastify on
+Node.js 22, pdf.js in worker threads · **AI:** Google Gemini (answers, OCR, `gemini-embedding-2` embeddings) · **Data:**
+PostgreSQL + pgvector (Neon in production, PGlite locally) · **Storage:** Vercel Blob (production) or local files ·
+**Contract:** zod schemas shared by both sides · **Tests:** Vitest, Playwright.
+
 ## Quick start
 
 Requires Node.js 22 (`.nvmrc`) and a Gemini API key (https://aistudio.google.com/apikey).
@@ -53,9 +64,16 @@ cp .env.example .env        # then set GEMINI_API_KEY=... in .env (never commit 
 npm run dev                 # API on 8787, web on 5173
 ```
 
-Open http://127.0.0.1:5173. With no `DATABASE_URL` the server uses an embedded PGlite database and stores uploads in
-`.data/`, so nothing else has to be installed. For real PostgreSQL with pgvector: `npm run db:up` (Docker), then set
-`DATABASE_URL=postgres://diary:diary@127.0.0.1:5433/diary` and run `npm run db:migrate`.
+Open http://127.0.0.1:5173.
+
+Database options:
+
+- **None (default):** with no `DATABASE_URL` the server uses an embedded PGlite database and stores uploads in `.data/`, so
+  nothing else has to be installed.
+- **Neon:** set `DATABASE_URL` in `.env` to your Neon connection string (pgvector is available on Neon). The server applies
+  its migrations on start, or run `npm run db:migrate` once.
+- **Local PostgreSQL:** `npm run db:up` (Docker), then set `DATABASE_URL=postgres://diary:diary@127.0.0.1:5433/diary` and run
+  `npm run db:migrate`.
 
 Production mode on one machine: `npm run build && SESSION_SECRET=$(openssl rand -hex 32) npm start`.
 
@@ -63,17 +81,17 @@ All settings are documented in `.env.example`; real environment variables win ov
 
 ## Testing
 
-| Command                | What it runs                                                                  |
-| ---------------------- | ----------------------------------------------------------------------------- |
-| `npm test`             | Unit and integration suites (shared, server, web); no network, no Gemini      |
-| `npm run typecheck`    | TypeScript (strict) for every workspace and `api/`                            |
-| `npm run lint`         | ESLint                                                                        |
-| `npm run format:check` | Prettier                                                                      |
-| `npm run test:pg`      | Real-PostgreSQL gate (starts the Docker database; leases, locks, migrations)  |
-| `npm run e2e`          | Playwright journeys, desktop and mobile, against a deterministic server       |
-| `npm run test:evals`   | Live RAG evals against Gemini (`GEMINI_API_KEY`; spends real requests)        |
-| `npm run calibrate`    | Re-measure the evidence gate thresholds (live, a few requests)                |
-| `npm run fixtures`     | Regenerate the test PDFs in `fixtures/`                                       |
+| Command                | What it runs                                                                 |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| `npm test`             | Unit and integration suites (shared, server, web); no network, no Gemini     |
+| `npm run typecheck`    | TypeScript (strict) for every workspace and `api/`                           |
+| `npm run lint`         | ESLint                                                                       |
+| `npm run format:check` | Prettier                                                                     |
+| `npm run test:pg`      | Real-PostgreSQL gate (starts the Docker database; leases, locks, migrations) |
+| `npm run e2e`          | Playwright journeys, desktop and mobile, against a deterministic server      |
+| `npm run test:evals`   | Live RAG evals against Gemini (`GEMINI_API_KEY`; spends real requests)       |
+| `npm run calibrate`    | Re-measure the evidence gate thresholds (live, a few requests)               |
+| `npm run fixtures`     | Regenerate the test PDFs in `fixtures/`                                      |
 
 ## Deploying to Vercel
 
